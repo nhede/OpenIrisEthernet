@@ -1,13 +1,13 @@
 # OpenIris version with ethernet support
 "W5500 lite" spi ethernet module used on the ESP32-CAM AI-Thinker module
 
-ESP32-CAM → W5500
-GPIO12 → MISO
-GPIO13 → MOSI
-GPIO14 → SCLK
-GPIO2 → SCS
-GND → GND
-3.3v -> VIN(3V3)
+* ESP32-CAM → W5500
+* GPIO12 → MISO
+* GPIO13 → MOSI
+* GPIO14 → SCLK
+* GPIO2 → SCS
+* GND → GND
+* 3.3v -> VIN(3V3)
 
 You need to disable power to the W5500 in order to program ESP32 (put a switch on the W5500).
 

@@ -54,6 +54,11 @@ void ProjectConfig::initConfig()
         false,
     };
 
+    this->config.eth_network = {
+        "169.254.0.123",
+        false,
+    };
+
     this->config.camera = {
         .vflip = 0,
         .href = 0,
@@ -71,6 +76,7 @@ void ProjectConfig::save()
     cameraConfigSave();
     wifiConfigSave();
     wifiTxPowerConfigSave();
+    ethConfigSave();
     end(); // we call end() here to close the connection to the NVS partition, we only do this because we call ESP.restart() next.
     ESP.restart();
 }
@@ -131,6 +137,13 @@ void ProjectConfig::wifiTxPowerConfigSave()
 {
     /* Device Config */
     putInt("power", this->config.txpower.power);
+}
+
+void ProjectConfig::ethConfigSave()
+{
+    /* Device Config */
+    putString("ethipaddr", this->config.eth_network.ip.c_str());
+    putBool("ethdhcp", this->config.eth_network.dhcp);
 }
 
 void ProjectConfig::cameraConfigSave()
@@ -206,6 +219,10 @@ void ProjectConfig::load()
     this->config.ap_network.ssid = getString("apSSID").c_str();
     this->config.ap_network.password = getString("apPass").c_str();
     this->config.ap_network.channel = getUInt("apChannel");
+
+    /* Eth Config */
+    this->config.eth_network.ip = getString("ethipaddr").c_str();
+    this->config.eth_network.dhcp = getBool("ethdhcp", false);
 
     /* Camera Config */
     this->config.camera.vflip = getInt("vflip", 0);
@@ -339,6 +356,16 @@ void ProjectConfig::setWiFiTxPower(uint8_t *power, bool shouldNotify)
         this->notify(ObserverEvent::wifiTxPowerUpdated);
 }
 
+void ProjectConfig::setEthConfig(const std::string &ip, bool dhcp, bool shouldNotify)
+{
+    this->config.eth_network.ip.assign(ip);
+    this->config.eth_network.dhcp = dhcp;
+
+    log_d("Updating ethernet config");
+    if (shouldNotify)
+        this->notify(ObserverEvent::ethUpdated);
+}
+
 std::string ProjectConfig::DeviceConfig_t::toRepresentation()
 {
     std::string json = Helpers::format_string(
@@ -401,6 +428,15 @@ std::string ProjectConfig::WiFiTxPower_t::toRepresentation()
     return json;
 }
 
+std::string ProjectConfig::EthConfig_t::toRepresentation()
+{
+    std::string json = Helpers::format_string(
+        "\"eth_config\": {\"ip\": \"%s\", \"dhcp\": %s}",
+        this->ip.c_str(),
+        this->dhcp ? "true" : "false");
+    return json;
+}
+
 //**********************************************************************************************************************
 //*
 //!                                                Get Methods
@@ -413,3 +449,4 @@ std::vector<ProjectConfig::WiFiConfig_t> *ProjectConfig::getWifiConfigs() { retu
 ProjectConfig::AP_WiFiConfig_t *ProjectConfig::getAPWifiConfig() { return &this->config.ap_network; }
 ProjectConfig::MDNSConfig_t *ProjectConfig::getMDNSConfig() { return &this->config.mdns; }
 ProjectConfig::WiFiTxPower_t *ProjectConfig::getWiFiTxPowerConfig() { return &this->config.txpower; }
+ProjectConfig::EthConfig_t *ProjectConfig::getEthConfig() { return &this->config.eth_network; }

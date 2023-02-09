@@ -13,6 +13,7 @@ namespace ObserverEvent
     networksConfigUpdated = 4,
     mdnsConfigUpdated = 5,
     wifiTxPowerUpdated = 6,
+    ethUpdated = 7,
   };
 }
 

@@ -18,6 +18,7 @@ public:
 	void load();
 	void save();
 	void wifiConfigSave();
+	void ethConfigSave();
 	void cameraConfigSave();
 	void deviceConfigSave();
 	void mdnsConfigSave();
@@ -84,6 +85,13 @@ public:
 		std::string toRepresentation();
 	};
 
+	struct EthConfig_t
+	{
+		std::string ip;
+		bool dhcp;
+		std::string toRepresentation();
+	};
+
 	struct WiFiTxPower_t
 	{
 		uint8_t power;
@@ -96,6 +104,7 @@ public:
 		CameraConfig_t camera;
 		std::vector<WiFiConfig_t> networks;
 		AP_WiFiConfig_t ap_network;
+		EthConfig_t eth_network;
 		MDNSConfig_t mdns;
 		WiFiTxPower_t txpower;
 	};
@@ -104,6 +113,7 @@ public:
 	CameraConfig_t *getCameraConfig();
 	std::vector<WiFiConfig_t> *getWifiConfigs();
 	AP_WiFiConfig_t *getAPWifiConfig();
+	EthConfig_t *getEthConfig();
 	MDNSConfig_t *getMDNSConfig();
 	WiFiTxPower_t *getWiFiTxPowerConfig();
 
@@ -113,6 +123,7 @@ public:
 	void setWifiConfig(const std::string &networkName, const std::string &ssid, const std::string &password, uint8_t *channel, uint8_t *power, bool adhoc, bool shouldNotify);
 	void setAPWifiConfig(const std::string &ssid, const std::string &password, uint8_t *channel, bool adhoc, bool shouldNotify);
 	void setWiFiTxPower(uint8_t *power, bool shouldNotify);
+	void setEthConfig(const std::string &ip, bool dhcp, bool shouldNotify);
 
 private:
 	TrackerConfig_t config;

@@ -131,6 +131,42 @@ void BaseAPI::setWiFi(AsyncWebServerRequest *request)
 	}
 }
 
+void BaseAPI::setEth(AsyncWebServerRequest *request)
+{
+	switch (_networkMethodsMap_enum[request->method()])
+	{
+	case POST:
+	{
+		int params = request->params();
+
+		std::string ip;
+		uint8_t dhcp = 0;
+
+		for (int i = 0; i < params; i++)
+		{
+			AsyncWebParameter *param = request->getParam(i);
+			if (param->name() == "ipaddr")
+			{
+				ip = param->value().c_str();
+			}
+			else if (param->name() == "dhcp")
+			{
+				dhcp = atoi(param->value().c_str());
+			}
+		}
+		projectConfig->setEthConfig(ip,dhcp,true);
+		projectConfig->ethConfigSave();
+		request->send(200, MIMETYPE_JSON, "{\"msg\":\"Done. Ethernet has been set.\"}");
+	}
+	default:
+	{
+		request->send(400, MIMETYPE_JSON, "{\"msg\":\"Invalid Request\"}");
+		request->redirect("/");
+		break;
+	}
+	}
+}
+
 void BaseAPI::getJsonConfig(AsyncWebServerRequest *request)
 {
 	// returns the current stored config in case it get's deleted on the PC.

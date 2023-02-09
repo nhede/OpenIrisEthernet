@@ -14,7 +14,7 @@
  */
 
 #include <Arduino.h>
-#include "EthernetSPI2.h"
+#include <ethernet/EthernetSPI2.h>
 #include "w5500.h"
 
 #ifndef SS_PIN_DEFAULT

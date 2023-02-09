@@ -38,6 +38,7 @@ void APIServer::setupServer()
 	routes.emplace("rebootDevice", &APIServer::rebootDevice);
 	routes.emplace("getStoredConfig", &APIServer::getJsonConfig);
 	routes.emplace("setTxPower", &APIServer::setWiFiTXPower);
+	routes.emplace("ethernet", &APIServer::setEth);
 	// Camera Routes
 	routes.emplace("setCamera", &APIServer::setCamera);
 	routes.emplace("restartCamera", &APIServer::restartCamera);

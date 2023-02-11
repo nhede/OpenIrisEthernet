@@ -7,7 +7,7 @@ constexpr static const char *ETH_STREAM_CONTENT_TYPE = "Access-Control-Allow-Ori
 constexpr static const char *ETH_STREAM_BOUNDARY = "\r\n24\r\n\r\n--" ETH_PART_BOUNDARY "\r\n";
 constexpr static const char *ETH_STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\nX-Timestamp: %d.%06d\r\n\r\n";
 
-esp_err_t StreamHelpersEth::stream(EthernetClient *ec)
+esp_err_t StreamHelpersEth::stream(EthernetClient *ec, bool &hdrIsSent)
 {
     camera_fb_t * fb = NULL;
     struct timeval _timestamp;
@@ -21,15 +21,13 @@ esp_err_t StreamHelpersEth::stream(EthernetClient *ec)
     size_t hlen;
     size_t clen;
 
-    //ec->println("HTTP/1.1 200 OK");
-    //ec->print("Content-Type: ");
-    //ec->println(ETH_STREAM_CONTENT_TYPE);
-    //ec->println("Access-Control-Allow-Origin: *");
-    //ec->println();
-    ec->print(ETH_STREAM_HTTPOK);
-    ec->print(ETH_STREAM_CONTENT_TYPE);
+    if(!hdrIsSent) {
+        ec->print(ETH_STREAM_HTTPOK);
+        ec->print(ETH_STREAM_CONTENT_TYPE);
+        hdrIsSent = true;
+    }
 
-    while(true){
+    //while(true){
         error_sending = false;
         fb = esp_camera_fb_get();
         if (!fb)
@@ -94,8 +92,12 @@ esp_err_t StreamHelpersEth::stream(EthernetClient *ec)
             _jpg_buf = NULL;
         }
 
-        if (error_sending) break; // if client disconnected do not send any more JPG's
-    }
+        if (error_sending) // if client disconnected do not send any more JPG's
+        {
+            hdrIsSent = false;
+            return ESP_FAIL;
+        }
+    //}
     return ESP_OK;
 }
 
@@ -104,7 +106,8 @@ StreamServerEth::StreamServerEth(int STREAM_PORT,
                                                                       stateManager(stateManager),
                                                                       server(server),
                                                                       configManager(configManager),
-                                                                      dhcp(_dhcp) 
+                                                                      dhcp(_dhcp),
+                                                                      isStreaming(false) 
 {
     ip.fromString(_ip.c_str());
 }
@@ -188,9 +191,21 @@ void StreamServerEth::loopStreamServerEth()
     boolean biolf;
     boolean doubleblank;
     boolean singleblank;
+    esp_err_t err;
+
+    if(isStreaming) {
+        err = StreamHelpersEth::stream(&client, hdrIsSent); // stream the jpeg's
+        if(err == ESP_FAIL) {
+            isStreaming = false;
+            delay(10);
+            client.stop();
+            //Serial.println("client disconnected");
+        }
+        return;
+    }
 
     // listen for incoming clients
-    EthernetClient client = server->available();
+    client = server->available();
     if (client) {
         //Serial.println("new client");
         // an http request ends with a blank line
@@ -246,10 +261,11 @@ void StreamServerEth::loopStreamServerEth()
 
                 if (doubleblank)
                 {
-                    StreamHelpersEth::stream(&client); // stream the jpeg's
+                    hdrIsSent = false;
+                    isStreaming = true;
                     singleblank = false;
                     doubleblank = false;          
-                    break;
+                    return;
                 }
             }
         }

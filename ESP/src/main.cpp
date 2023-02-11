@@ -139,7 +139,11 @@ void loop()
 #if ENABLE_OTA
 	ota.HandleOTAUpdate();
 #endif // ENABLE_OTA
+#if !ENABLE_ETH 
+	//todo, the led blink delay times are no good for eth, 
+	//suggest it to be changed to use millis() for timing (like in OTAUpdate) so there is no delay in the loop
 	ledManager.handleLED(&ledStateManager);
+#endif
 	//  serialManager.handleSerial();
 #if ENABLE_ETH
 	streamServerEth.loopStreamServerEth();

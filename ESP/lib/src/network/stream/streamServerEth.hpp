@@ -16,7 +16,7 @@
 
 namespace StreamHelpersEth
 {
-	esp_err_t stream(EthernetClient *ec);
+	esp_err_t stream(EthernetClient *ec, bool &hdrIsSent);
 }
 class StreamServerEth
 {
@@ -30,6 +30,9 @@ private:
 	IPAddress ip;
 	bool dhcp;
 	ProjectConfig *configManager;
+	bool isStreaming;
+	bool hdrIsSent;
+	EthernetClient client;
 
 public:
 	StreamServerEth(int STREAM_PORT,
